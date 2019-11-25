@@ -1,0 +1,4 @@
+__pycache__/
+*jpeg
+Data/
+processed_data/
