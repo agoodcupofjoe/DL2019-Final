@@ -45,7 +45,7 @@ def colorconstant(image,p,order=0,sigma=1):
         norm = lambda x: np.power(np.sum(np.power(x,p)),1 / p)
     # Estimating illumination
     illumination = [norm(channel) for channel in derivative]
-    # Scaling each channel by respective illumination (usinig broadcasting)
+    # Scaling each channel by respective illumination (using broadcasting)
     illumination = illumination / np.linalg.norm(illumination) * np.sqrt(3)
     # Returns image as ndarray of uint8
     return np.clip(image / illumination / 255., 0., 0.999999)
