@@ -18,7 +18,7 @@ def train(model, train_inputs, train_labels):
 	# random rotation
 	train_inputs[2*block_size:3*block_size,:,:,:] = [datagen(x, {'theta':float(np.random.randint(360))}) for x in train_inputs[2*block_size:4*block_size,:,:,:]]
 	# random shear between 0 and 20 degrees
-	train_inputs[3*block_size:4*block_size,:,:,:] = [datagen(x, {'shear':float(np.random.randint(15))}) for x in train_inputs[3*block_size:4*block_size,:,:,:]]
+	train_inputs[3*block_size:4*block_size,:,:,:] = [datagen(x, {'shear':float(np.random.randint(20))}) for x in train_inputs[3*block_size:4*block_size,:,:,:]]
 
 	for img, label in zip(train_inputs, train_labels):
 		with tf.GradientTape() as tape:
