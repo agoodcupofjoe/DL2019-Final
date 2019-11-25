@@ -86,7 +86,11 @@ def process_image_with_exception(filename):
     except Exception as e:
         print("Failed to process", filename, str(e))
         return False
-
+def get_batches(imgs, batch_size=1024):
+    i = 0
+    while i < len(imgs):
+        yield imgs[i:i+batch_size]
+        i += batch_size
 def main():
     # Reshape each image in train and test folder to 300x400 pixels
     # We know that most images are already in 3:4 aspect ratio
@@ -101,17 +105,17 @@ def main():
         directory = "processed_data/" + folder.split("/", 1)[1]
         if not os.path.exists(directory):
             os.makedirs(directory)
-        results = pool.map(process_image_with_exception, imgs)
-        successes = [filename for filename, succ in zip(imgs, results) if succ]
-        failures = [filename for filename, succ in zip(imgs, results) if not succ]
-        already_done.extend(successes)
-        not_done.extend(failures)
+        for batch_imgs in get_batches(imgs):
+            batch_results = pool.map(process_image_with_exception, batch_imgs)
+            successes = [filename for filename, succ in zip(batch_imgs, batch_results) if succ]
+            failures = [filename for filename, succ in zip(batch_imgs, batch_results) if not succ]
+            already_done = successes
+            not_done = failures
+            with open("already_done.txt", "a+") as myfile:
+                myfile.write('\n'.join(already_done))
+            with open('not_done.txt', mode='w+') as myfile:
+                myfile.write('\n'.join(not_done))
     print("Finished processing all images")
-    with open("already_done.txt", "a+") as myfile:
-        myfile.write('\n'.join(already_done))
-    with open('not_done.txt', mode='w+') as myfile:
-        myfile.write('\n'.join(not_done))
-
 if __name__ == "__main__":
     pool = multiprocessing.Pool(48)
     main()
