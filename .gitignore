@@ -1,0 +1,5 @@
+__pycache__/
+*jpeg
+Data/
+processed_data/
+already_done.txt
