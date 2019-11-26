@@ -35,9 +35,14 @@ def train(model, train_inputs, train_labels):
 		model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
 def test(model, test_inputs, test_labels):
-	baseline_logits = model.call(test_inputs)
-	baseline_accuracy = model.accuracy(baseline_logits, test_labels)
-	return baseline_accuracy
+	# Pass the test images through the model's call function
+	logits = model.call(test_inputs)
+
+	# Determine the accuracy using the outputted logits and predictions
+	accuracy = model.accuracy(logits, test_labels)
+
+	# Return the calculated accuracy
+	return accuracy
 
 def load_jpegs(file_path):
 	jpegs = []
@@ -50,22 +55,32 @@ def load_jpegs(file_path):
 	return np.array(jpegs)
 
 def main():
-	#  Change file paths accordingly
+	# Acquire and load training images as tensors
 	train_data = load_jpegs("processed_data/train/img/*.jpeg")
-
-	# Need to figure out file path for labels/edit prepreprocess because
-	# prepreprocess only extractsthe images and not the labels just yet
-	# train_labels = get_one_hots_diagnosis()
-
 	train_data = tf.convert_to_tensor(train_data, dtype=tf.float32)
-	for index in range(tf.shape(train_data)[0]):
-		print(tf.shape(train_data[index]))
 
+	# Acquire the labels for the corresponding training images
+	train_labels = get_one_hots_diagnosis("processed_data/train/labels/*")
 
-	# Call function works on training data!
+	# Acquire and load testing images as tensors
+	test_data = load_jpegs("processed_data/test/img/*.jpeg")
+	test_data = tf.convert_to_tensor(test_data, dtype=tf.float32)
+
+	# Acquire the labels for the corresponding testing images
+	test_labels = get_one_hots_diagnosis("process_data/test/labels/*")
+
+	# Construct baseline model
 	baseline_model = Baseline()
-	logits = baseline_model.call(train_data, True)
-	print(logits)
+
+	# Train the baseline model for the following number of epochs
+	for epoch_index in range(baseline_model.num_epochs):
+		train(baseline_model, train_data, train_labels)
+
+	# Determine accuracy of baseline model on test_data
+	baseline_accuracy = test(baseline_model, test_data, test_labels) * 100
+
+	# Print out the accuracy of the baseline model
+	print(f"Baseline Model Accuracy: {baseline_accuracy}%")
 
 
 
