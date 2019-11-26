@@ -72,9 +72,25 @@ def main():
 	# Construct baseline model
 	baseline_model = Baseline()
 
+	# Determine number of training images
+	num_train = tf.shape(train_data)[0]
+
 	# Train the baseline model for the following number of epochs
 	for epoch_index in range(baseline_model.num_epochs):
-		train(baseline_model, train_data, train_labels)
+		# Determine the number of batches to run and train
+		num_batches = (num_train // baseline_model.batch_size)
+
+		for batch_index in range(num_batches):
+			# Determine the indices of the images for the current batch
+			start_index = batch_index * model.batch_size
+			end_index = (batch_index + 1) * model.batch_size
+
+			# Slice and extract the current batch's data and labels
+			batch_data = train_data[start_index:end_index]
+			batch_labels = train_labels[start_index:end_index]
+
+			# Train the model on the current batch's data and labels
+			train(baseline_model, batch_data, batch_labels)
 
 	# Determine accuracy of baseline model on test_data
 	baseline_accuracy = test(baseline_model, test_data, test_labels) * 100
