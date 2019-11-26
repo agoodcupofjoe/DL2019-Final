@@ -82,8 +82,8 @@ def main():
 
 		for batch_index in range(num_batches):
 			# Determine the indices of the images for the current batch
-			start_index = batch_index * model.batch_size
-			end_index = (batch_index + 1) * model.batch_size
+			start_index = batch_index * baseline_model.batch_size
+			end_index = (batch_index + 1) * baseline_model.batch_size
 
 			# Slice and extract the current batch's data and labels
 			batch_data = train_data[start_index:end_index]
