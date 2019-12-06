@@ -73,16 +73,33 @@ def train(model, train_inputs, train_labels):
 	gradients = tape.gradient(loss, model.trainable_variables)
 	model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-# test
-def test(model, test_inputs, test_labels):
-	# Pass the test images through the model's call function
+def recall(true_pos,possible_pos,epsilon=1e-7):
+        return true_pos / (possible_pos + epsilon)
+
+def precision(true_pos,predicted_pos,epsilon=1e-7):
+        return true_pos / (predicted_pos + epsilon)
+
+def F1(recall,precision,epsilon=1e-7):
+        return 2 * recall * precision / (precision + recall + epsilon)
+
+def test(model, test_inputs, test_labels, epsilon=1e-7):
+
+  # Pass the test images through the model's call function
 	logits = model.call(test_inputs, False)
 
 	# Determine the accuracy using the outputted logits and predictions
 	accuracy = model.accuracy(logits, test_labels)
 
-	# Return the calculated accuracy
-	return accuracy
+        # Model predictions
+        pred = tf.argmax(logits,axis=-1)
+
+        # Determine true/possible/predicted positives
+        true_pos = tf.sum(pred * test_labels)
+        possible_pos = tf.sum(test_labels)
+        predicted_pos = tf.sum(pred)   
+
+	# Return the calculated accuracy and true/possible/predicted positives for 
+	return accuracy,true_pos,possible_pos,predicted_pos
 
 # load images in batches
 def load_images(lst):
@@ -121,7 +138,7 @@ def main():
 		# Shuffle the inputs and the labels using the shuffled indices
 		train_inputs = tf.gather(train_data, rand_indices)
 		train_labels = tf.gather(train_labels, rand_indices)
-
+                print("\nTRAIN EPOCH: {}".format(epoch_index + 1))
 		for batch_index in range(num_batches):
 			# Determine the indices of the images for the current batch
 			start_index = batch_index * args.batch_size
@@ -140,7 +157,11 @@ def main():
 	# Determine accuracy of baseline model on test_data
 	num_test = len(test_data)
 	acc = 0
-	num_batches = num_test // args.batch_size
+	truep = 0
+	posp = 0
+	predp = 0
+	num_batches = num_test // baseline_model.batch_size
+	print("")
 	for batch_index in range(num_batches):
 		start_index = batch_index * args.batch_size
 		end_index = (batch_index + 1) * args.batch_size
@@ -149,12 +170,21 @@ def main():
 		batch_labels = test_labels[start_index: end_index]
 		batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
-		accuracy = test(model, batch_data, batch_labels)
-		acc = acc + accuracy
+		a,b,c,d = test(baseline_model, batch_data, batch_labels)
+		acc += a
+		truep += b
+		posp += c
+		predp += d
 		print("TEST BATCH: {}".format(batch_index + 1))
 
-	# Print out the accuracy of the baseline model
-	print("{:.2f}".format(acc / num_batches * 100))
+	# Print out evaluation metrics for the baseline model
+        sens = recall(truep,posp)
+        prec = precision(truep,predp)
+        f1 = F1(sens,prec)
+	print("Global accuracy: {:.2f}%".format(acc / num_batches * 100))
+	print("Sensitivity: {:.2f}%".format(sens * 100))
+        print("Precision: {:.2f}%".format(prec * 100))
+        print("F1 score: {:.2f}".format(f1))	
 
 if __name__ == '__main__':
 	main()
