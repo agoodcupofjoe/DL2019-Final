@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 import glob
 import argparse
+import os
 
 # Killing optional CPU driver warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -33,7 +34,7 @@ parser.add_argument('--mode', type=str, default='BASELINE',
 
 args = parser.parse_args()
 
-# train
+# Train
 def train(model, train_inputs, train_labels):
 	# Random shuffling of data
 	rand_indx = tf.random.shuffle(np.arange(args.batch_size))
@@ -73,33 +74,35 @@ def train(model, train_inputs, train_labels):
 	gradients = tape.gradient(loss, model.trainable_variables)
 	model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
+# Test
+# Sensitivity function
 def recall(true_pos,possible_pos,epsilon=1e-7):
-        return true_pos / (possible_pos + epsilon)
+	return tf.dtypes.cast(true_pos, dtype = tf.float32) / (tf.dtypes.cast(possible_pos, dtype = tf.float32) + epsilon)
 
+# Precision function
 def precision(true_pos,predicted_pos,epsilon=1e-7):
-        return true_pos / (predicted_pos + epsilon)
+        return tf.dtypes.cast(true_pos, dtype = tf.float32) / (tf.dtypes.cast(predicted_pos, dtype = tf.float32) + epsilon)
 
+# F1 score function
 def F1(recall,precision,epsilon=1e-7):
         return 2 * recall * precision / (precision + recall + epsilon)
 
 def test(model, test_inputs, test_labels, epsilon=1e-7):
 
-  # Pass the test images through the model's call function
+        # Pass the test images through the model's call function
 	logits = model.call(test_inputs, False)
-
 	# Determine the accuracy using the outputted logits and predictions
 	accuracy = model.accuracy(logits, test_labels)
-
         # Model predictions
-        pred = tf.argmax(logits,axis=-1)
+	pred = tf.argmax(logits,axis=-1)
+	test_labels = tf.argmax(test_labels, axis = 1)
+        # Determine true/possible/predicted positive
+	true_pos = tf.math.reduce_sum(pred * tf.dtypes.cast(test_labels, dtype = tf.int64))
+	possible_pos = tf.math.reduce_sum(test_labels)
+	predicted_pos = tf.math.reduce_sum(pred)
 
-        # Determine true/possible/predicted positives
-        true_pos = tf.sum(pred * test_labels)
-        possible_pos = tf.sum(test_labels)
-        predicted_pos = tf.sum(pred)   
-
-	# Return the calculated accuracy and true/possible/predicted positives for 
-	return accuracy,true_pos,possible_pos,predicted_pos
+	# Return the calculated accuracy and true/possible/predicted positives for
+	return accuracy, true_pos, possible_pos, predicted_pos
 
 # load images in batches
 def load_images(lst):
@@ -121,9 +124,9 @@ def main():
 	# Construct baseline model
 	if args.mode == "BASELINE":
 		model = Baseline()
-	else if args.mode == "SERESNEXT":
+	elif args.mode == "SERESNEXT":
 #		model = SE_RES_Next()
-
+		pass
 	# Determine number of training images
 	num_train = tf.shape(train_data)[0]
 	indices = tf.Variable(np.arange(0, num_train, 1))
@@ -138,7 +141,6 @@ def main():
 		# Shuffle the inputs and the labels using the shuffled indices
 		train_inputs = tf.gather(train_data, rand_indices)
 		train_labels = tf.gather(train_labels, rand_indices)
-                print("\nTRAIN EPOCH: {}".format(epoch_index + 1))
 		for batch_index in range(num_batches):
 			# Determine the indices of the images for the current batch
 			start_index = batch_index * args.batch_size
@@ -160,7 +162,7 @@ def main():
 	truep = 0
 	posp = 0
 	predp = 0
-	num_batches = num_test // baseline_model.batch_size
+	num_batches = num_test // args.batch_size
 	print("")
 	for batch_index in range(num_batches):
 		start_index = batch_index * args.batch_size
@@ -170,7 +172,7 @@ def main():
 		batch_labels = test_labels[start_index: end_index]
 		batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
-		a,b,c,d = test(baseline_model, batch_data, batch_labels)
+		a, b, c, d = test(model, batch_data, batch_labels)
 		acc += a
 		truep += b
 		posp += c
@@ -178,13 +180,13 @@ def main():
 		print("TEST BATCH: {}".format(batch_index + 1))
 
 	# Print out evaluation metrics for the baseline model
-        sens = recall(truep,posp)
-        prec = precision(truep,predp)
-        f1 = F1(sens,prec)
+	sens = recall(truep,posp)
+	prec = precision(truep,predp)
+	f1 = F1(sens,prec)
 	print("Global accuracy: {:.2f}%".format(acc / num_batches * 100))
 	print("Sensitivity: {:.2f}%".format(sens * 100))
-        print("Precision: {:.2f}%".format(prec * 100))
-        print("F1 score: {:.2f}".format(f1))	
+	print("Precision: {:.2f}%".format(prec * 100))
+	print("F1 score: {:.2f}".format(f1))
 
 if __name__ == '__main__':
 	main()
