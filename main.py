@@ -5,14 +5,42 @@ from cv2 import cv2
 import tensorflow as tf
 import numpy as np
 import glob
+import argparse
 
+# Killing optional CPU driver warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+gpu_available = tf.test.is_gpu_available()
+print("GPU Available: ", gpu_available)
+
+# argparser
+parser = argparse.ArgumentParser(description='</cancer>')
+
+parser.add_argument('--restore-checkpoint', action='store_true',
+                    help='Use this flag if you want to resuming training from a previously-saved checkpoint')
+
+parser.add_argument('--batch-size', type=int, default=500,
+                    help='Sizes of batches fed through the network')
+
+parser.add_argument('--num-epochs', type=int, default=15,
+                    help='Number of passes through the training data to make before stopping')
+
+parser.add_argument('--learn-rate', type=float, default=0.001,
+                    help='Learning rate for Adam optimizer')
+
+parser.add_argument('--mode', type=str, default='BASELINE',
+                    help='Can be "BASELINE" or "SERESTNEXT"')
+
+args = parser.parse_args()
+
+# train
 def train(model, train_inputs, train_labels):
 	# Random shuffling of data
-	rand_indx = tf.random.shuffle(np.arange(model.batch_size))
+	rand_indx = tf.random.shuffle(np.arange(args.batch_size))
 	train_inputs, train_labels = tf.gather(train_inputs, rand_indx), tf.gather(train_labels, rand_indx)
 
 	# Dividing data into 5 blocks, doing different transform on each (one get no transform)
-	block_size = model.batch_size // 5
+	block_size = args.batch_size // 5
 	datagen = tf.keras.preprocessing.image.ImageDataGenerator().apply_transform
 
 	transformed_jpegs = []
@@ -33,7 +61,7 @@ def train(model, train_inputs, train_labels):
 	for index in range(3*block_size, 4*block_size):
 		transformed_jpegs.append(datagen(np.array(train_inputs[index,:,:,:]), {'shear':float(np.random.randint(20))}))
 
-	for index in range(4*block_size, model.batch_size):
+	for index in range(4*block_size, args.batch_size):
 		transformed_jpegs.append(train_inputs[index,:,:,:])
 
 	new_train_inputs = tf.stack(transformed_jpegs)
@@ -45,6 +73,7 @@ def train(model, train_inputs, train_labels):
 	gradients = tape.gradient(loss, model.trainable_variables)
 	model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
+# test
 def test(model, test_inputs, test_labels):
 	# Pass the test images through the model's call function
 	logits = model.call(test_inputs, False)
@@ -55,16 +84,7 @@ def test(model, test_inputs, test_labels):
 	# Return the calculated accuracy
 	return accuracy
 
-def load_jpegs(file_path):
-	jpegs = []
-	files = glob.glob(file_path)
-
-	for file in files:
-		jpeg = cv2.imread(file)
-		jpegs.append(jpeg)
-
-	return np.array(jpegs)
-
+# load images in batches
 def load_images(lst):
 	img = []
 	for file in lst:
@@ -73,6 +93,7 @@ def load_images(lst):
 
 	return np.array(img)
 
+# main function
 def main():
 	# Get names of images and load labels
 	train_data = glob.glob("processed_data/train/img/*.jpeg")
@@ -81,16 +102,20 @@ def main():
 	test_labels = get_one_hots_diagnosis("processed_data/test/meta/*")
 
 	# Construct baseline model
-	baseline_model = Baseline()
+	if args.mode == "BASELINE":
+		model = Baseline()
+	else if args.mode == "SERESNEXT":
+#		model = SE_RES_Next()
 
 	# Determine number of training images
 	num_train = tf.shape(train_data)[0]
 	indices = tf.Variable(np.arange(0, num_train, 1))
 
 	# Train the baseline model for the following number of epochs
-	for epoch_index in range(baseline_model.num_epochs):
+	for epoch_index in range(args.num_epochs):
+		print("*****************EPOCH: {}********************".format(epoch_index + 1))
 		# Determine the number of batches to run and train
-		num_batches = (num_train // baseline_model.batch_size)
+		num_batches = num_train // args.batch_size
 		rand_indices = tf.random.shuffle(indices)
 
 		# Shuffle the inputs and the labels using the shuffled indices
@@ -99,8 +124,8 @@ def main():
 
 		for batch_index in range(num_batches):
 			# Determine the indices of the images for the current batch
-			start_index = batch_index * baseline_model.batch_size
-			end_index = (batch_index + 1) * baseline_model.batch_size
+			start_index = batch_index * args.batch_size
+			end_index = (batch_index + 1) * args.batch_size
 
 			# Slice and extract the current batch's data and labels
 			batch_images = train_data[start_index : end_index]
@@ -108,22 +133,23 @@ def main():
 			batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
 			# Train the model on the current batch's data and labels
-			train(baseline_model, batch_data, batch_labels)
-			print("TRAIN BATCH: {}".format(batch_index + 1))
+			train(model, batch_data, batch_labels)
+			if batch_index % 10 == 9:
+				print("TRAIN BATCH: {}".format(batch_index + 1))
 
 	# Determine accuracy of baseline model on test_data
 	num_test = len(test_data)
 	acc = 0
-	num_batches = num_test // baseline_model.batch_size
+	num_batches = num_test // args.batch_size
 	for batch_index in range(num_batches):
-		start_index = batch_index * baseline_model.batch_size
-		end_index = (batch_index + 1) * baseline_model.batch_size
+		start_index = batch_index * args.batch_size
+		end_index = (batch_index + 1) * args.batch_size
 
 		batch_images = test_data[start_index: end_index]
 		batch_labels = test_labels[start_index: end_index]
 		batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
-		accuracy = test(baseline_model, batch_data, batch_labels)
+		accuracy = test(model, batch_data, batch_labels)
 		acc = acc + accuracy
 		print("TEST BATCH: {}".format(batch_index + 1))
 
