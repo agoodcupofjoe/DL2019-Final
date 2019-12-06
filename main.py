@@ -117,9 +117,11 @@ def load_images(lst):
 def main():
 	# Get names of images and load labels
 	train_data = glob.glob("processed_data/train/img/*.jpeg")
-	test_data = glob.glob("processed_data/test/img/*.jpeg")
+	test_data = glob.glob("processed_data/test/img/ISIC_0*.jpeg")
+	print(len(test_data))
 	train_labels = get_one_hots_diagnosis("processed_data/train/meta/*")
-	test_labels = get_one_hots_diagnosis("processed_data/test/meta/*")
+	test_labels = get_one_hots_diagnosis("processed_data/test/meta/ISIC_0*")
+	print(len(test_labels))
 
 	# Construct baseline model
 	if args.mode == "BASELINE":
@@ -132,7 +134,8 @@ def main():
 	indices = tf.Variable(np.arange(0, num_train, 1))
 
 	# Train the baseline model for the following number of epochs
-	for epoch_index in range(args.num_epochs):
+#	for epoch_index in range(args.num_epochs):
+	for epoch_index in range(1):
 		print("*****************EPOCH: {}********************".format(epoch_index + 1))
 		# Determine the number of batches to run and train
 		num_batches = num_train // args.batch_size
@@ -141,7 +144,8 @@ def main():
 		# Shuffle the inputs and the labels using the shuffled indices
 		train_inputs = tf.gather(train_data, rand_indices)
 		train_labels = tf.gather(train_labels, rand_indices)
-		for batch_index in range(num_batches):
+#		for batch_index in range(num_batches):
+		for batch_index in range(1):
 			# Determine the indices of the images for the current batch
 			start_index = batch_index * args.batch_size
 			end_index = (batch_index + 1) * args.batch_size
