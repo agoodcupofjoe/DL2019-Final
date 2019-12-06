@@ -84,11 +84,11 @@ def main():
 	baseline_model = Baseline()
 
 	# Determine number of training images
-	num_train = len(train_data)
+	num_train = tf.shape(train_data)[0]
 	indices = tf.Variable(np.arange(0, num_train, 1))
 
 	# Train the baseline model for the following number of epochs
-	for epoch_index in range(5):
+	for epoch_index in range(baseline_model.num_epochs):
 		# Determine the number of batches to run and train
 		num_batches = (num_train // baseline_model.batch_size)
 		rand_indices = tf.random.shuffle(indices)
