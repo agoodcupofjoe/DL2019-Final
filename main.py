@@ -32,6 +32,9 @@ parser.add_argument('--learn-rate', type=float, default=0.001,
 parser.add_argument('--mode', type=str, default='BASELINE',
                     help='Can be "BASELINE" or "SERESNEXT"')
 
+parser.add_argument('--save-output', type=bool, default=True,
+                    help="Whether to save model test results to 'test_results.npz'")
+
 args = parser.parse_args()
 
 # Train
@@ -75,7 +78,7 @@ def train(model, train_inputs, train_labels):
 	model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
 # Test
-# Sensitivity function
+# Recall function
 def recall(true_pos,possible_pos,epsilon=1e-7):
 	return tf.dtypes.cast(true_pos, dtype = tf.float32) / (tf.dtypes.cast(possible_pos, dtype = tf.float32) + epsilon)
 
@@ -102,7 +105,7 @@ def test(model, test_inputs, test_labels, epsilon=1e-7):
 	predicted_pos = tf.math.reduce_sum(pred)
 
 	# Return the calculated accuracy and true/possible/predicted positives for
-	return accuracy, true_pos, possible_pos, predicted_pos
+	return accuracy, true_pos, possible_pos, predicted_pos, pred, test_labels
 
 # load images in batches
 def load_images(lst):
@@ -125,7 +128,7 @@ def main():
 	if args.mode == "BASELINE":
 		model = Baseline()
 	elif args.mode == "SERESNEXT":
-#		model = SE_RES_Next()
+		#model = SE_ResNeXt()
 		pass
 	# Determine number of training images
 	num_train = tf.shape(train_data)[0]
@@ -164,6 +167,8 @@ def main():
 	predp = 0
 	num_batches = num_test // args.batch_size
 	print("")
+	predictions = []
+	labels = []
 	for batch_index in range(num_batches):
 		start_index = batch_index * args.batch_size
 		end_index = (batch_index + 1) * args.batch_size
@@ -172,11 +177,13 @@ def main():
 		batch_labels = test_labels[start_index: end_index]
 		batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
-		a, b, c, d = test(model, batch_data, batch_labels)
+		a, b, c, d, e, f = test(model, batch_data, batch_labels)
 		acc += a
 		truep += b
 		posp += c
 		predp += d
+		predictions.append(e)
+		labels.append(f)
 		print("TEST BATCH: {}".format(batch_index + 1))
 
 	# Print out evaluation metrics for the baseline model
@@ -187,6 +194,14 @@ def main():
 	print("Sensitivity: {:.2f}%".format(sens * 100))
 	print("Precision: {:.2f}%".format(prec * 100))
 	print("F1 score: {:.2f}".format(f1))
+
+	# Save and write out predictions/labels for evaluation/visualization
+	if args.save_output:
+                predictions = tf.concat(predictions,axis=0).numpy()
+                labels = tf.concat(labels,axis=0).numpy()
+                print("\nSAVING RESULTS")
+                np.savez('test_results.npz',pred=predictions,true=labels)
+                print("SAVED RESULTS")
 
 if __name__ == '__main__':
 	main()
