@@ -1,8 +1,7 @@
 import json
 import glob
 import numpy as np
-
-
+import tensorflow as tf
 
 def get_meta(path):
     '''
@@ -17,16 +16,16 @@ def get_meta(path):
 
 def get_one_hots_diagnosis(directory_path):
     '''
-    This fn gets a one-hot tensor ([0,1] if benign, [1,0] if malignant) 
-    
+    This fn gets a one-hot tensor ([0,1] if benign, [1,0] if malignant)
+
     params: directory_path, the path to the directory containing all of the labels, with /* added to the end
-    
-    output: labels, a one-hot tensor of the labels for whether the img is malignant or benign 
+
+    output: labels, a one-hot tensor of the labels for whether the img is malignant or benign
+
     '''
     files = glob.glob(directory_path)
     files = np.sort(files)
 
-    
     labels = [get_meta(str(file))['benign_malignant'] == 'benign' for file in files]
     labels = tf.one_hot(labels, 2)
 

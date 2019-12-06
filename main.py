@@ -65,19 +65,19 @@ def load_jpegs(file_path):
 
 	return np.array(jpegs)
 
+def load_images(lst):
+	img = []
+	for file in lst:
+		image = cv2.imread(file)
+		img.append(image)
+
+	return np.array(img)
+
 def main():
-	# Acquire and load training images as tensors
-	train_data = load_jpegs("processed_data/train/img/*.jpeg")
-	train_data = tf.convert_to_tensor(train_data, dtype=tf.float32)
-
-	# Acquire the labels for the corresponding training images
+	# Get names of images and load labels
+	train_data = glob.glob("processed_data/train/img/*.jpeg")
+	test_data = glob.glob("processed_data/test/img/*.jpeg")
 	train_labels = get_one_hots_diagnosis("processed_data/train/meta/*")
-
-	# Acquire and load testing images as tensors
-	test_data = load_jpegs("processed_data/test/img/*.jpeg")
-	test_data = tf.convert_to_tensor(test_data, dtype=tf.float32)
-
-	# Acquire the labels for the corresponding testing images
 	test_labels = get_one_hots_diagnosis("processed_data/test/meta/*")
 
 	# Construct baseline model
@@ -103,20 +103,32 @@ def main():
 			end_index = (batch_index + 1) * baseline_model.batch_size
 
 			# Slice and extract the current batch's data and labels
-			batch_data = train_data[start_index:end_index]
-			batch_labels = train_labels[start_index:end_index]
+			batch_images = train_data[start_index : end_index]
+			batch_labels = train_labels[start_index : end_index]
+			batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
 			# Train the model on the current batch's data and labels
 			train(baseline_model, batch_data, batch_labels)
+			print("TRAIN BATCH: {}".format(batch_index + 1))
 
 	# Determine accuracy of baseline model on test_data
-	baseline_accuracy = test(baseline_model, test_data, test_labels) * 100
+	num_test = len(test_data)
+	acc = 0
+	num_batches = num_test // baseline_model.batch_size
+	for batch_index in range(num_batches):
+		start_index = batch_index * baseline_model.batch_size
+		end_index = (batch_index + 1) * baseline_model.batch_size
+
+		batch_images = test_data[start_index: end_index]
+		batch_labels = test_labels[start_index: end_index]
+		batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
+
+		accuracy = test(baseline_model, batch_data, batch_labels)
+		acc = acc + accuracy
+		print("TEST BATCH: {}".format(batch_index + 1))
 
 	# Print out the accuracy of the baseline model
-	# print(f"Baseline Model Accuracy: {baseline_accuracy}%")
-	print(baseline_accuracy)
-
-
+	print("{:.2f}".format(acc / num_batches * 100))
 
 if __name__ == '__main__':
 	main()
