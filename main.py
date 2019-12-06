@@ -29,7 +29,7 @@ parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
 parser.add_argument('--mode', type=str, default='BASELINE',
-                    help='Can be "BASELINE" or "SERESTNEXT"')
+                    help='Can be "BASELINE" or "SERESNEXT"')
 
 args = parser.parse_args()
 
