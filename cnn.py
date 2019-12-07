@@ -1,9 +1,9 @@
 import tensorflow as tf
 
-class cnn(tf.keras.Model):
+class CNN(tf.keras.Model):
     def __init__(self):
 
-        super(cnn,self).__init__()
+        super(CNN,self).__init__()
 
         self.batch_size = 500
 
