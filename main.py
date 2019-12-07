@@ -29,7 +29,7 @@ parser.add_argument('--num-epochs', type=int, default=15,
 parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
-parser.add_argument('--mode', type=str, default='CNN',
+parser.add_argument('--model', type=str, default='CNN',
                     help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
@@ -127,17 +127,17 @@ def main():
     print(len(test_labels))
 
     # Construct baseline model
-    if args.mode == "CNN":
+    if args.model == "CNN":
         model = CNN()
-    elif args.mode == "SENET":
+    elif args.model == "SENET":
         model = SENet()
-    elif args.mode == "RESNET":
+    elif args.model == "RESNET":
         pass#model = ResNet()
-    elif args.mode == "RESNEXT":
+    elif args.model == "RESNEXT":
         pass#model = ResNeXt()
-    elif args.mode == "SERESNET":
+    elif args.model == "SERESNET":
         pass#model = SE_ResNet()
-    elif args.mode == "SERESNEXT":
+    elif args.model == "SERESNEXT":
         pass#model = SE_ResNeXt()
     
     # Determine number of training images
