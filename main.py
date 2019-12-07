@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from CNN import CNN
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
@@ -34,6 +36,9 @@ parser.add_argument('--mode', type=str, default='CNN',
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
+
+parser.add_argument('--save-every', type=int, default=1,
+                    help='Save the state of the network after every [this many] training iterations')
 
 args = parser.parse_args()
 
@@ -160,6 +165,8 @@ def main():
 			train(model, batch_data, batch_labels)
 			if batch_index % 10 == 9:
 				print("TRAIN BATCH: {}".format(batch_index + 1))
+				
+		
 
 	# Determine accuracy of baseline model on test_data
 	num_test = len(test_data)
