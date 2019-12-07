@@ -20,6 +20,9 @@ parser = argparse.ArgumentParser(description='</cancer>')
 parser.add_argument('--restore-checkpoint', action='store_true',
                     help='Use this flag if you want to resuming training from a previously-saved checkpoint')
 
+parser.add_argument('--mode', type=str, default='train',
+                    help='Determines whether model is in training ("train") or inference mode ("test")')
+
 parser.add_argument('--batch-size', type=int, default=500,
                     help='Sizes of batches fed through the network')
 
@@ -29,7 +32,7 @@ parser.add_argument('--num-epochs', type=int, default=15,
 parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
-parser.add_argument('--mode', type=str, default='CNN',
+parser.add_argument('--model', type=str, default='CNN',
                     help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
@@ -128,55 +131,59 @@ def main():
     test_labels = get_one_hots_diagnosis("processed_data/test/meta/ISIC_0*")
 
     # Construct baseline model
-    if args.mode == "CNN":
+    if args.model == "CNN":
         model = CNN()
-    elif args.mode == "SENET":
+    elif args.model == "SENET":
         model = SENet()
-    elif args.mode == "RESNET":
+    elif args.model == "RESNET":
         pass#model = ResNet()
-    elif args.mode == "RESNEXT":
+    elif args.model == "RESNEXT":
         pass#model = ResNeXt()
-    elif args.mode == "SERESNET":
+    elif args.model == "SERESNET":
         pass#model = SE_ResNet()
-    elif args.mode == "SERESNEXT":
+    elif args.model == "SERESNEXT":
         pass#model = SE_ResNeXt()
     
     # For saving/loading models
-    checkpoint_dir = './checkpoints'
-    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-    checkpoint = tf.train.Checkpoint()
+    checkpoint_dir = './checkpoints/{}'.format(args.model)
+    checkpoint = tf.train.Checkpoint(model=model)
     manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=3)
+    
+    # Determine whether to restore checkpoint
+    if args.restore_checkpoint or args.mode == "test":
+        checkpoint.restore(manager.latest_checkpoint)
     
     # Determine number of training images
     num_train = tf.shape(train_data)[0]
     indices = tf.Variable(np.arange(0, num_train, 1))
+    
+    if args.mode == "train":
+        # Train the baseline model for the following number of epochs
+        for epoch_index in range(args.num_epochs):
+            print("*****************EPOCH: {}********************".format(epoch_index + 1))
+            # Determine the number of batches to run and train
+            num_batches = num_train // args.batch_size
+            rand_indices = tf.random.shuffle(indices)
 
-    # Train the baseline model for the following number of epochs
-    for epoch_index in range(args.num_epochs):
-        print("*****************EPOCH: {}********************".format(epoch_index + 1))
-        # Determine the number of batches to run and train
-        num_batches = num_train // args.batch_size
-        rand_indices = tf.random.shuffle(indices)
+            # Shuffle the inputs and the labels using the shuffled indices
+            train_inputs = tf.gather(train_data, rand_indices)
+            train_labels = tf.gather(train_labels, rand_indices)
+            for batch_index in range(num_batches):
+                # Determine the indices of the images for the current batch
+                start_index = batch_index * args.batch_size
+                end_index = (batch_index + 1) * args.batch_size
 
-        # Shuffle the inputs and the labels using the shuffled indices
-        train_inputs = tf.gather(train_data, rand_indices)
-        train_labels = tf.gather(train_labels, rand_indices)
-        for batch_index in range(num_batches):
-            # Determine the indices of the images for the current batch
-            start_index = batch_index * args.batch_size
-            end_index = (batch_index + 1) * args.batch_size
+                # Slice and extract the current batch's data and labels
+                batch_images = train_data[start_index : end_index]
+                batch_labels = train_labels[start_index : end_index]
+                batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
-            # Slice and extract the current batch's data and labels
-            batch_images = train_data[start_index : end_index]
-            batch_labels = train_labels[start_index : end_index]
-            batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
+                # Train the model on the current batch's data and labels
+                train(model, batch_data, batch_labels, manager)
+                if batch_index % 10 == 9:
+                    print("TRAIN BATCH: {}".format(batch_index + 1))
 
-            # Train the model on the current batch's data and labels
-            train(model, batch_data, batch_labels, manager)
-            if batch_index % 10 == 9:
-                print("TRAIN BATCH: {}".format(batch_index + 1))
-                
-        manager.save()
+            manager.save()
 
     # Determine accuracy of baseline model on test_data
     num_test = len(test_data)
