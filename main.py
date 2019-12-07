@@ -143,6 +143,7 @@ def main():
         pass#model = SE_ResNet()
     elif args.model == "SERESNEXT":
         pass#model = SE_ResNeXt()
+    print("MODEL RUNNING: {}".format(args.model))
     
     # For saving/loading models
     checkpoint_dir = './checkpoints/{}'.format(args.model)
@@ -159,8 +160,9 @@ def main():
     
     if args.mode == "train":
         # Train the baseline model for the following number of epochs
+        print("*****************TRAINING*****************")
         for epoch_index in range(args.num_epochs):
-            print("*****************EPOCH: {}********************".format(epoch_index + 1))
+            print("*****************EPOCH: {}*****************".format(epoch_index + 1))
             # Determine the number of batches to run and train
             num_batches = num_train // args.batch_size
             rand_indices = tf.random.shuffle(indices)
@@ -196,6 +198,7 @@ def main():
     logits = []
     preds = []
     labels = []
+    print("*****************TESTING*****************")
     for batch_index in range(num_batches):
         start_index = batch_index * args.batch_size
         end_index = (batch_index + 1) * args.batch_size
