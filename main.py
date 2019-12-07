@@ -7,6 +7,7 @@ import numpy as np
 import glob
 import argparse
 import os
+import io
 
 # Killing optional CPU driver warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -124,6 +125,9 @@ def load_images(lst):
 
 # main function
 def main():
+    # log buffer
+    log = io.StringIO()
+  
     # Get names of images and load labels
     train_data = glob.glob("processed_data/train/img/*.jpeg")
     test_data = glob.glob("processed_data/test/img/ISIC_0*.jpeg")
@@ -144,6 +148,7 @@ def main():
     elif args.model == "SERESNEXT":
         pass#model = SE_ResNeXt()
     print("MODEL RUNNING: {}".format(args.model))
+    io.write("MODEL RUNNING: " + args.model + "\n")
     
     # For saving/loading models
     checkpoint_dir = './checkpoints/{}'.format(args.model)
@@ -222,18 +227,32 @@ def main():
     prec = precision(truep,predp)
     f1 = F1(sens,prec)
     print("Global accuracy: {:.2f}%".format(acc / num_batches * 100))
+    log.write("Global accuracy: " + str(round((acc / num_batches * 100), 2)) + "%\n")
     print("Sensitivity: {:.2f}%".format(sens * 100))
+    log.write("Sensitivity: " + str(round((sens * 100), 2)) + "\n")
     print("Precision: {:.2f}%".format(prec * 100))
+    log.write("Precision: " + str(round((prec * 100), 2)) + "\n")
     print("F1 score: {:.2f}".format(f1))
+    log.write("F1 score: " + str(round(f1, 2)) + "\n")
+    
+    log_directory = "./log/" + args.model
+    try:
+        os.makedirs(log_directory)
+        print("Created " + log_directory)
+    except:
+        print("Directory already exists: " + log_directory)
 
     # Save and write out predictions/labels for evaluation/visualization
     if args.save_output:
-                logits = tf.concat(logits,axis=0).numpy()
-                preds = tf.concat(preds,axis=0).numpy()
-                labels = tf.concat(labels,axis=0).numpy()
-                print("\nSAVING RESULTS")
-                np.savez('test_results.npz',logits=logits,pred=preds,true=labels)
-                print("SAVED RESULTS")
+        with open(log_directory + "log.txt", "w+") as fd:
+            log.seek(0)
+            shutil.copyfileobj(log, fd)
+        logits = tf.concat(logits,axis=0).numpy()
+        preds = tf.concat(preds,axis=0).numpy()
+        labels = tf.concat(labels,axis=0).numpy()
+        print("\nSAVING RESULTS")
+        np.savez(log_directory + "test_results.npz",logits=logits,pred=preds,true=labels)
+        print("SAVED RESULTS")
 
 if __name__ == '__main__':
     main()
