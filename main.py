@@ -29,16 +29,19 @@ parser.add_argument('--num-epochs', type=int, default=15,
 parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
-parser.add_argument('--model', type=str, default='CNN',
+parser.add_argument('--mode', type=str, default='CNN',
                     help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
 
+parser.add_argument('--save-every', type=int, default=1,
+                    help='Save the state of the network after every [this many] training iterations')
+
 args = parser.parse_args()
 
 # Train
-def train(model, train_inputs, train_labels):
+def train(model, train_inputs, train_labels, manager):
     # Random shuffling of data
     rand_indx = tf.random.shuffle(np.arange(args.batch_size))
     train_inputs, train_labels = tf.gather(train_inputs, rand_indx), tf.gather(train_labels, rand_indx)
@@ -121,24 +124,28 @@ def main():
     # Get names of images and load labels
     train_data = glob.glob("processed_data/train/img/*.jpeg")
     test_data = glob.glob("processed_data/test/img/ISIC_0*.jpeg")
-    print(len(test_data))
     train_labels = get_one_hots_diagnosis("processed_data/train/meta/*")
     test_labels = get_one_hots_diagnosis("processed_data/test/meta/ISIC_0*")
-    print(len(test_labels))
 
     # Construct baseline model
-    if args.model == "CNN":
+    if args.mode == "CNN":
         model = CNN()
-    elif args.model == "SENET":
+    elif args.mode == "SENET":
         model = SENet()
-    elif args.model == "RESNET":
+    elif args.mode == "RESNET":
         pass#model = ResNet()
-    elif args.model == "RESNEXT":
+    elif args.mode == "RESNEXT":
         pass#model = ResNeXt()
-    elif args.model == "SERESNET":
+    elif args.mode == "SERESNET":
         pass#model = SE_ResNet()
-    elif args.model == "SERESNEXT":
+    elif args.mode == "SERESNEXT":
         pass#model = SE_ResNeXt()
+    
+    # For saving/loading models
+    checkpoint_dir = './checkpoints'
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+    checkpoint = tf.train.Checkpoint()
+    manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=3)
     
     # Determine number of training images
     num_train = tf.shape(train_data)[0]
@@ -165,9 +172,11 @@ def main():
             batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
             # Train the model on the current batch's data and labels
-            train(model, batch_data, batch_labels)
+            train(model, batch_data, batch_labels, manager)
             if batch_index % 10 == 9:
                 print("TRAIN BATCH: {}".format(batch_index + 1))
+                
+        manager.save()
 
     # Determine accuracy of baseline model on test_data
     num_test = len(test_data)
