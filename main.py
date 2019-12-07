@@ -1,4 +1,4 @@
-from baseline import Baseline
+from cnn import cnn
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 
@@ -29,8 +29,8 @@ parser.add_argument('--num-epochs', type=int, default=15,
 parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
-parser.add_argument('--mode', type=str, default='BASELINE',
-                    help='Can be "BASELINE" or "SERESNEXT"')
+parser.add_argument('--mode', type=str, default='CNN',
+                    help='Can be "CNN" or "SENET" or "RESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
@@ -127,8 +127,8 @@ def main():
 	print(len(test_labels))
 
 	# Construct baseline model
-	if args.mode == "BASELINE":
-		model = Baseline()
+	if args.mode == "CNN":
+		model = cnn()
 	elif args.mode == "SERESNEXT":
 		#model = SE_ResNeXt()
 		pass
@@ -137,8 +137,7 @@ def main():
 	indices = tf.Variable(np.arange(0, num_train, 1))
 
 	# Train the baseline model for the following number of epochs
-#	for epoch_index in range(args.num_epochs):
-	for epoch_index in range(1):
+	for epoch_index in range(args.num_epochs):
 		print("*****************EPOCH: {}********************".format(epoch_index + 1))
 		# Determine the number of batches to run and train
 		num_batches = num_train // args.batch_size
@@ -147,8 +146,7 @@ def main():
 		# Shuffle the inputs and the labels using the shuffled indices
 		train_inputs = tf.gather(train_data, rand_indices)
 		train_labels = tf.gather(train_labels, rand_indices)
-#		for batch_index in range(num_batches):
-		for batch_index in range(1):
+		for batch_index in range(num_batches):
 			# Determine the indices of the images for the current batch
 			start_index = batch_index * args.batch_size
 			end_index = (batch_index + 1) * args.batch_size
