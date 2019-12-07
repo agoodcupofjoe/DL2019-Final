@@ -247,6 +247,7 @@ def main():
         with open(log_directory + "log.txt", "w+") as fd:
             log.seek(0)
             shutil.copyfileobj(log, fd)
+        log.close()
         logits = tf.concat(logits,axis=0).numpy()
         preds = tf.concat(preds,axis=0).numpy()
         labels = tf.concat(labels,axis=0).numpy()
