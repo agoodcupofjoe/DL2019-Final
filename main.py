@@ -1,4 +1,4 @@
-from cnn import cnn
+from CNN import CNN
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 
@@ -30,7 +30,7 @@ parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
 parser.add_argument('--mode', type=str, default='CNN',
-                    help='Can be "CNN" or "SENET" or "RESNET" or "SERESNEXT"')
+                    help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
@@ -128,7 +128,7 @@ def main():
 
 	# Construct baseline model
 	if args.mode == "CNN":
-		model = cnn()
+		model = CNN()
 	elif args.mode == "SERESNEXT":
 		#model = SE_ResNeXt()
 		pass
