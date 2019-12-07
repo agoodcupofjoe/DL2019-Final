@@ -3,3 +3,4 @@ __pycache__/
 Data/
 processed_data/
 already_done.txt
+test_results.npz
