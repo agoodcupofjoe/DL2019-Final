@@ -1,4 +1,4 @@
-from baseline import Baseline
+from CNN import CNN
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 
@@ -29,8 +29,8 @@ parser.add_argument('--num-epochs', type=int, default=15,
 parser.add_argument('--learn-rate', type=float, default=0.001,
                     help='Learning rate for Adam optimizer')
 
-parser.add_argument('--mode', type=str, default='BASELINE',
-                    help='Can be "BASELINE" or "SERESNEXT"')
+parser.add_argument('--mode', type=str, default='CNN',
+                    help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
@@ -120,13 +120,15 @@ def load_images(lst):
 def main():
 	# Get names of images and load labels
 	train_data = glob.glob("processed_data/train/img/*.jpeg")
-	test_data = glob.glob("processed_data/test/img/*.jpeg")
+	test_data = glob.glob("processed_data/test/img/ISIC_0*.jpeg")
+	print(len(test_data))
 	train_labels = get_one_hots_diagnosis("processed_data/train/meta/*")
-	test_labels = get_one_hots_diagnosis("processed_data/test/meta/*")
+	test_labels = get_one_hots_diagnosis("processed_data/test/meta/ISIC_0*")
+	print(len(test_labels))
 
 	# Construct baseline model
-	if args.mode == "BASELINE":
-		model = Baseline()
+	if args.mode == "CNN":
+		model = CNN()
 	elif args.mode == "SERESNEXT":
 		#model = SE_ResNeXt()
 		pass
