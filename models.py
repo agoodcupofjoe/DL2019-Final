@@ -181,7 +181,7 @@ class SENet(tf.keras.Model):
         # Return output of final layer as logits
         return dense3
 
-    def loss(self,pred,true):
+    def loss(self,logits,labels):
         return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
     
     def accuracy(self,pred,true):
