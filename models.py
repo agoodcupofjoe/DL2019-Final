@@ -1,5 +1,17 @@
 import tensorflow as tf
 
+def F1_loss(labels,pred,from_logits=True,epsilon=1e-7):
+    if from_logits:
+        pred = tf.nn.softmax(pred,axis=-1)
+    truepos = tf.reduce_sum(labels * pred,axis=0)
+    falsepos = tf.reduce_sum((1-labels) * pred,axis=0)
+    falseneg = tf.reduce_sum(labels * (1-pred),axis=0)
+    precision = truepos / (truepos + falsepos + epsilon)
+    recall = truepos / (truepos + falseneg + epsilon)
+    F1 = 2 * precision * recall / (precision + recall + epsilon)
+    F1 = tf.where(tf.is_nan(F1),tf.zeros_like(F1),F1)
+    return 1 - tf.reduce_mean(F1)
+
 class SE_Block(tf.keras.layers.Layer):
     def __init__(self,out_channels,ratio):
         super(SE_Block,self).__init__()
@@ -151,7 +163,7 @@ class CNN(tf.keras.Model):
         return dense3
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits)
 
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -208,7 +220,7 @@ class SENet(tf.keras.Model):
         return dense3
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -254,7 +266,7 @@ class ResNet(tf.keras.Model):
         return output
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits))
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -300,7 +312,7 @@ class SE_ResNet(tf.keras.Model):
         return output
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -346,7 +358,7 @@ class ResNeXt(tf.keras.Model):
         return output
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -392,7 +404,7 @@ class SE_ResNeXt(tf.keras.Model):
         return output
 
     def loss(self,logits,labels):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels,logits))
+        return F1_loss(labels,logits))
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
