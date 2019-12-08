@@ -3,7 +3,7 @@ __pycache__/
 Data/
 processed_data/
 already_done.txt
-log/*
-checkpoints/*
+log/
+checkpoints/
 models.pyc
-*npz
+test_results.npz
