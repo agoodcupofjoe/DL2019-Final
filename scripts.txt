@@ -1,0 +1,2 @@
+python main.py --num-epochs 20 --model SENET
+python main.py --num-epochs 20 --model CNN

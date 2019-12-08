@@ -61,6 +61,8 @@ def fixborder(image):
     image[:,-1,:] = image[:,-2,:]
     return image
 
+trainimages = False
+
 def processimage(filename):
     '''
     params:
@@ -70,7 +72,8 @@ def processimage(filename):
         None - replaces image at filename with processed version
     '''
     image = io.imread(filename)
-    image = colorconstant(image,6)
+    if trainimages:
+        image = colorconstant(image,6)
     image = fixborder(image)
     image = skimage.transform.resize(image,(300,400),anti_aliasing=True)
     with warnings.catch_warnings():
@@ -78,13 +81,13 @@ def processimage(filename):
         l = skimage.img_as_ubyte(image)
     out_file = "processed_data/" + filename.split("/", 1)[1]
     io.imsave(out_file, l, quality = 100)
-    print("Processed ", out_file)
+    print("Processed image at: {}".format(out_file))
 def process_image_with_exception(filename):
     try:
         processimage(filename)
         return True
     except Exception as e:
-        print("Failed to process", filename, str(e))
+        print("\nFAILED TO PROCESS: {}\nException: {}\n".format(filename, str(e)))
         return False
 def get_batches(imgs, batch_size=1024):
     i = 0
@@ -115,6 +118,7 @@ def main():
                 myfile.write('\n'.join(already_done))
             with open('not_done.txt', mode='w+') as myfile:
                 myfile.write('\n'.join(not_done))
+        trainimages = True
     print("Finished processing all images")
 if __name__ == "__main__":
     pool = multiprocessing.Pool(48)
