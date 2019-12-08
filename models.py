@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 def F1_loss(labels,pred,from_logits=True,epsilon=1e-7):
+    labels = tf.cast(labels,tf.float32)
     if from_logits:
         pred = tf.nn.softmax(pred,axis=-1)
     truepos = tf.reduce_sum(labels * pred,axis=0)
@@ -9,7 +10,7 @@ def F1_loss(labels,pred,from_logits=True,epsilon=1e-7):
     precision = truepos / (truepos + falsepos + epsilon)
     recall = truepos / (truepos + falseneg + epsilon)
     F1 = 2 * precision * recall / (precision + recall + epsilon)
-    F1 = tf.where(tf.is_nan(F1),tf.zeros_like(F1),F1)
+    F1 = tf.where(tf.math.is_nan(F1),tf.zeros_like(F1),F1)
     return 1 - tf.reduce_mean(F1)
 
 class SE_Block(tf.keras.layers.Layer):
