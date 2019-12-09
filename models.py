@@ -51,7 +51,7 @@ class Bottleneck(tf.keras.layers.Layer):
         self.B1 = tf.keras.layers.BatchNormalization()
         self.A1 = tf.keras.layers.Activation('relu')
 
-        self.DC = tf.keras.layers.DepthwiseConv2D(2,padding='SAME',use_bias=False)
+        self.DC = tf.keras.layers.DepthwiseConv2D(3,padding='SAME',use_bias=False)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.A2 = tf.keras.layers.Activation('relu')
 
