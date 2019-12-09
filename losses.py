@@ -2,9 +2,9 @@ import tensorflow as tf
 
 def cross_entropy_loss(labels,pred,from_logits=True):
     if from_logits:
-        loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels,pred))
+        loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(tf.argmax(labels,axis=-1),pred))
     else:
-        loss = tf.keras.losses.binary_crossentropy(labels,pred)
+        assert from_logits,"cross_entropy_loss requires from_logits=True"
     return loss
 
 def F1_loss(labels,pred,from_logits=True,epsilon=1e-7):
