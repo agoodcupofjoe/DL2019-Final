@@ -61,6 +61,8 @@ def fixborder(image):
     image[:,-1,:] = image[:,-2,:]
     return image
 
+trainimages = False
+
 def processimage(filename):
     '''
     params:
@@ -70,6 +72,8 @@ def processimage(filename):
         None - replaces image at filename with processed version
     '''
     image = io.imread(filename)
+    if trainimages:
+        image = colorconstant(image,6)
     image = skimage.transform.resize(image,(150,200),anti_aliasing=True)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -90,14 +94,13 @@ def get_batches(imgs, batch_size=1024):
         yield imgs[i:i+batch_size]
         i += batch_size
 def main():
-    # Reshape each image in train and test folder to 300x400 pixels
+    # Reshape each image in train and test folder to 150x200 pixels
     # We know that most images are already in 3:4 aspect ratio
-    # This was done on 11/24
     with open("already_done.txt") as myfile:
         already_done = myfile.readlines()
     folders = ["processed_data/test/img", "processed_data/train/img"]
     for folder in folders:
-        imgs = [img for img in glob.glob(folder + "/ISIC*")]
+        imgs = [img for img in glob.glob(folder + "/ISIC*") if img not in already_done]
         directory = "processed_data/" + folder.split("/", 1)[1]
         if not os.path.exists(directory):
             os.makedirs(directory)
