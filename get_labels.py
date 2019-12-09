@@ -16,7 +16,7 @@ def get_meta(path):
 
 def get_one_hots_diagnosis(directory_path):
     '''
-    This fn gets a one-hot tensor ([0,1] if benign, [1,0] if malignant)
+    This fn gets a one-hot tensor ([1,0] if benign, [0,1] if malignant)
 
     params: directory_path, the path to the directory containing all of the labels, with /* added to the end
 
@@ -26,7 +26,7 @@ def get_one_hots_diagnosis(directory_path):
     files = glob.glob(directory_path)
     files = np.sort(files)
 
-    labels = [get_meta(str(file))['benign_malignant'] == 'benign' for file in files]
+    labels = [get_meta(str(file))['benign_malignant'] == 'malignant' for file in files]
     labels = tf.one_hot(labels, 2)
 
     return labels
