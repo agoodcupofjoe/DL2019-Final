@@ -7,10 +7,23 @@ def F1_loss(labels,pred,from_logits=True,epsilon=1e-7):
     truepos = tf.reduce_sum(labels * pred,axis=0)
     falsepos = tf.reduce_sum((1-labels) * pred,axis=0)
     falseneg = tf.reduce_sum(labels * (1-pred),axis=0)
-    precision = truepos / (truepos + falsepos + epsilon)
-    recall = truepos / (truepos + falseneg + epsilon)
-    F1 = 2 * precision * recall / (precision + recall + epsilon)
+    F1 = 2 * truepos / (2 * truepos + falsepos + falseneg + epsilon)
     F1 = tf.where(tf.math.is_nan(F1),tf.zeros_like(F1),F1)
+    return 1 - tf.reduce_mean(F1)
+
+def F1_loss_balanced(labels,pred,from_logits=True,epsilon=1e-7):
+    labels = tf.cast(labels,tf.float32)
+    if from_logits:
+        pred = tf.nn.softmax(pred,axis=-1)
+    truepos = tf.reduce_sum(labels * pred,axis=0)
+    trueneg = tf.reduce_sum((1-labels) * (1-pred),axis=0)
+    falsepos = tf.reduce_sum((1-labels) * pred,axis=0)
+    falseneg = tf.reduce_sum(labels * (1-pred),axis=0)
+    F1_pos = 2 * truepos / (2 * truepos + falsepos + falseneg + epsilon)
+    F1_neg = 2 * trueneg / (2 * trueneg + falseneg + falsepos + epsilon)
+    F1_pos = tf.where(tf.math.is_nan(F1_pos),tf.zeros_like(F1_pos),F1_pos)
+    F1_neg = tf.where(tf.math.is_nan(F1_neg),tf.zeros_like(F1_neg),F1_neg)
+    F1 = (F1_pos + F1_neg) / 2.0
     return 1 - tf.reduce_mean(F1)
 
 class SE_Block(tf.keras.layers.Layer):
@@ -78,7 +91,7 @@ class ResNeXt_Block(tf.keras.layers.Layer):
     def se_call(self,inputs,training):
         x = inputs
         groups = [bn.call(x,training) for bn in self.BN]
-        grouped = tf.math.accumulate_n(groups)
+        grouped = tf.reduce_sum(groups,axis=0)
         if self.conv_input:
             x = self.A0(self.B0(self.C0(x),training))
         return x,grouped
@@ -164,7 +177,7 @@ class CNN(tf.keras.Model):
         return dense3
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
 
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -221,7 +234,7 @@ class SENet(tf.keras.Model):
         return dense3
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -240,11 +253,11 @@ class ResNet(tf.keras.Model):
         self.R2 = ResNeXt_Block(1,16,20,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        
         self.R3 = ResNeXt_Block(1,20,20,4)
         self.B3 = tf.keras.layers.BatchNormalization()
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -260,14 +273,14 @@ class ResNet(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        block3 = self.B3(self.R3.call(block2,training),training)
+        dense1 = self.D1(self.F1(self.flatten(block3)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -286,11 +299,11 @@ class SE_ResNet(tf.keras.Model):
         self.R2 = SE_ResNeXt_Block(1,16,20,4,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        
         self.R3 = SE_ResNeXt_Block(1,20,20,4,4)
         self.B3 = tf.keras.layers.BatchNormalization()
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -306,14 +319,14 @@ class SE_ResNet(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        block3 = self.B3(self.R3.call(block2,training),training)
+        dense1 = self.D1(self.F1(self.flatten(block3)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -332,11 +345,11 @@ class ResNeXt(tf.keras.Model):
         self.R2 = ResNeXt_Block(5,16,20,2)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        
         self.R3 = ResNeXt_Block(5,20,20,2)
         self.B3 = tf.keras.layers.BatchNormalization()
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -352,14 +365,14 @@ class ResNeXt(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        block3 = self.B3(self.R3.call(block2,training),training)
+        dense1 = self.D1(self.F1(self.flatten(block3)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
@@ -378,11 +391,11 @@ class SE_ResNeXt(tf.keras.Model):
         self.R2 = SE_ResNeXt_Block(5,16,20,2,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        
         self.R3 = SE_ResNeXt_Block(5,20,20,2,4)
         self.B3 = tf.keras.layers.BatchNormalization()
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -398,14 +411,14 @@ class SE_ResNeXt(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        block3 = self.B3(self.R3.call(block2,training),training)
+        dense1 = self.D1(self.F1(self.flatten(block3)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
 
     def loss(self,logits,labels):
-        return F1_loss(labels,logits)
+        return F1_loss_balanced(labels,logits)
     
     def accuracy(self,logits,labels):
         return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits,1),tf.argmax(labels,1)), dtype=tf.float32))
