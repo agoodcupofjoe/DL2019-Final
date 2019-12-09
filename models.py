@@ -78,7 +78,7 @@ class ResNeXt_Block(tf.keras.layers.Layer):
     def se_call(self,inputs,training):
         x = inputs
         groups = [bn.call(x,training) for bn in self.BN]
-        grouped = tf.math.accumulate_n(groups)
+        grouped = tf.reduce_sum(groups,axis=0)
         if self.conv_input:
             x = self.A0(self.B0(self.C0(x),training))
         return x,grouped
@@ -240,11 +240,12 @@ class ResNet(tf.keras.Model):
         self.R2 = ResNeXt_Block(1,16,20,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        '''
         self.R3 = ResNeXt_Block(1,20,20,4)
         self.B3 = tf.keras.layers.BatchNormalization()
+        '''
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -260,8 +261,8 @@ class ResNet(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        #block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
+        dense1 = self.D1(self.F1(self.flatten(block2)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
@@ -286,11 +287,12 @@ class SE_ResNet(tf.keras.Model):
         self.R2 = SE_ResNeXt_Block(1,16,20,4,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        '''
         self.R3 = SE_ResNeXt_Block(1,20,20,4,4)
         self.B3 = tf.keras.layers.BatchNormalization()
+        '''
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -306,8 +308,8 @@ class SE_ResNet(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        #block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
+        dense1 = self.D1(self.F1(self.flatten(block2)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
@@ -332,11 +334,12 @@ class ResNeXt(tf.keras.Model):
         self.R2 = ResNeXt_Block(5,16,20,2)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        '''
         self.R3 = ResNeXt_Block(5,20,20,2)
         self.B3 = tf.keras.layers.BatchNormalization()
+        '''
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -352,8 +355,8 @@ class ResNeXt(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        #block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
+        dense1 = self.D1(self.F1(self.flatten(block2)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
@@ -378,11 +381,12 @@ class SE_ResNeXt(tf.keras.Model):
         self.R2 = SE_ResNeXt_Block(5,16,20,2,4)
         self.B2 = tf.keras.layers.BatchNormalization()
         self.P2 = tf.keras.layers.MaxPool2D(pool_size=2,strides=2,padding='VALID')
-
+        '''
         self.R3 = SE_ResNeXt_Block(5,20,20,2,4)
         self.B3 = tf.keras.layers.BatchNormalization()
+        '''
         self.flatten = tf.keras.layers.Flatten()
-
+        
         self.F1 = tf.keras.layers.Dense(320,activation='relu',kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1),bias_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.1))
         self.D1 = tf.keras.layers.Dropout(0.3)
 
@@ -398,8 +402,8 @@ class SE_ResNeXt(tf.keras.Model):
     def call(self,inputs,training):
         block1 = self.P1(self.B1(self.R1.call(inputs,training),training))
         block2 = self.P2(self.B2(self.R2.call(block1,training),training))
-        block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
-        dense1 = self.D1(self.F1(block3),training)
+        #block3 = self.flatten(self.B3(self.R3.call(block2,training),training))
+        dense1 = self.D1(self.F1(self.flatten(block2)),training)
         dense2 = self.D2(self.F2(dense1),training)
         output = self.F3(dense2)
         return output
