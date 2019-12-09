@@ -1,4 +1,4 @@
-from models import CNN, SENet
+from models import CNN, SENet, ResNet, SE_ResNet, ResNeXt, SE_ResNeXt
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 
@@ -8,6 +8,7 @@ import glob
 import argparse
 import os
 import io
+import shutil
 
 # Killing optional CPU driver warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -140,15 +141,15 @@ def main():
     elif args.model == "SENET":
         model = SENet()
     elif args.model == "RESNET":
-        pass#model = ResNet()
+        model = ResNet()
     elif args.model == "RESNEXT":
-        pass#model = ResNeXt()
+        model = ResNeXt()
     elif args.model == "SERESNET":
-        pass#model = SE_ResNet()
+        model = SE_ResNet()
     elif args.model == "SERESNEXT":
-        pass#model = SE_ResNeXt()
+        model = SE_ResNeXt()
     print("MODEL RUNNING: {}".format(args.model))
-    io.write("MODEL RUNNING: " + args.model + "\n")
+    log.write("MODEL RUNNING: " + args.model + "\n")
     
     # For saving/loading models
     checkpoint_dir = './checkpoints/{}'.format(args.model)
@@ -190,7 +191,7 @@ def main():
                 if batch_index % 10 == 9:
                     print("TRAIN BATCH: {}".format(batch_index + 1))
 
-            manager.save()
+            #manager.save()
 
     # Determine accuracy of baseline model on test_data
     num_test = len(test_data)
@@ -204,16 +205,21 @@ def main():
     preds = []
     labels = []
     print("*****************TESTING*****************")
-    for batch_index in range(num_batches):
+    for batch_index in range(num_batches + 1):
         start_index = batch_index * args.batch_size
         end_index = (batch_index + 1) * args.batch_size
 
-        batch_images = test_data[start_index: end_index]
-        batch_labels = test_labels[start_index: end_index]
+        if batch_index == num_batches:
+            batch_images = test_data[start_index: ]
+            batch_labels = test_labels[start_index: ]
+        else:
+            batch_images = test_data[start_index: end_index]
+            batch_labels = test_labels[start_index: end_index]
+
         batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
         a, b, c, d, e, f, g = test(model, batch_data, batch_labels)
-        acc += a
+        acc += (a * len(batch_images))
         truep += b
         posp += c
         predp += d
@@ -223,19 +229,20 @@ def main():
         print("TEST BATCH: {}".format(batch_index + 1))
 
     # Print out evaluation metrics for the baseline model
+    acc = acc / num_test
     sens = recall(truep,posp)
     prec = precision(truep,predp)
     f1 = F1(sens,prec)
-    print("Global accuracy: {:.2f}%".format(acc / num_batches * 100))
-    log.write("Global accuracy: " + str(round((acc / num_batches * 100), 2)) + "%\n")
+    print("Global accuracy: {:.2f}%".format(acc * 100))
+    log.write("Global accuracy: " + str(round((acc * 100).numpy(), 2)) + "%\n")
     print("Sensitivity: {:.2f}%".format(sens * 100))
-    log.write("Sensitivity: " + str(round((sens * 100), 2)) + "\n")
+    log.write("Sensitivity: " + str(round((sens * 100).numpy(), 2)) + "\n")
     print("Precision: {:.2f}%".format(prec * 100))
-    log.write("Precision: " + str(round((prec * 100), 2)) + "\n")
+    log.write("Precision: " + str(round((prec * 100).numpy(), 2)) + "\n")
     print("F1 score: {:.2f}".format(f1))
-    log.write("F1 score: " + str(round(f1, 2)) + "\n")
+    log.write("F1 score: " + str(round(f1.numpy(), 2)) + "\n")
     
-    log_directory = "./log/" + args.model
+    log_directory = "./log/" + args.model + "/"
     try:
         os.makedirs(log_directory)
         print("Created " + log_directory)

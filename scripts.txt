@@ -1,0 +1,1 @@
+python main.py --num-epochs 10 --model RESNEXT --batch-size 100
