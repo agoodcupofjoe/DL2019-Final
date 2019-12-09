@@ -31,7 +31,7 @@ def balanced_focal_loss(labels,pred,lam=2,alpha=0.25,from_logits=True,epsilon=1e
     labels = tf.cast(labels,tf.float32)
     if from_logits:
         pred = tf.nn.softmax(pred,axis=-1)
-    pc = pred * labels
+    pc = tf.reduce_sum(pred * labels,axis=-1)
     focal = -alpha * tf.pow(1 - pc,lam) * tf.math.log(pc)
     focal = tf.where(tf.math.is_nan(focal),tf.zeros_like(focal),focal)
     return tf.reduce_mean(focal)
