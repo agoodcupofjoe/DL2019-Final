@@ -256,7 +256,7 @@ def main():
     print("F1 score: {:.2f}".format(f1))
     log.write("F1 score: " + str(round(f1.numpy(), 2)) + "\n")
     
-    log_directory = "./log/" + args.model + "/"
+    log_directory = "./log/" + args.model + "/" + args.loss + "/"
     try:
         os.makedirs(log_directory)
         print("Created " + log_directory)
