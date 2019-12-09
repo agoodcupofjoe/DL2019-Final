@@ -82,6 +82,14 @@ def train(model, train_inputs, train_labels, manager):
 
     new_train_inputs = tf.stack(transformed_jpegs)
 
+    # Determine loss function
+    if args.loss == "F1":
+        loss_func = F1_loss
+    elif args.loss == "mean_F1":
+        loss_func = mean_F1_loss
+    elif args.loss == "focal":
+        loss_func = balanced_focal_loss
+    
     with tf.GradientTape() as tape:
         logits = model.call(new_train_inputs, True)
         loss = loss_func(train_labels,logits)
@@ -155,15 +163,8 @@ def main():
     print("MODEL RUNNING: {}".format(args.model))
     log.write("MODEL RUNNING: " + args.model + "\n")
 
-    # Determine loss function
-    if args.loss == "F1":
-        loss_func = F1_loss
-    elif args.loss == "mean_F1":
-        loss_func = mean_F1_loss
-    elif args.loss == "focal":
-        loss_func = balanced_focal_loss
-    print("LOSS FUNCTION: {}".format(args.loss))
-    log.write("LOSS FUNCTION: {}".format(args.loss))
+    print("LOSS FUNCTION: {}\n".format(args.loss))
+    log.write("LOSS FUNCTION: {}\n".format(args.loss))
     
     # For saving/loading models
     checkpoint_dir = './checkpoints/{}'.format(args.model)
