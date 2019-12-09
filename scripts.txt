@@ -1,6 +1,1 @@
-python main.py --num-epochs 10 --model CNN --batch-size 100
-python main.py --num-epochs 10 --model SERESNEXT --batch-size 100
-python main.py --num-epochs 10 --model SENET --batch-size 100
-python main.py --num-epochs 10 --model RESNET --batch-size 100
-pythoh main.py --num-epochs 10 --model RESNEXT --batch-size 100
-python main.py --num-epochs 10 --model SERESNET --batch-size 100
+python main.py --num-epochs 10 --model RESNEXT --batch-size 100
