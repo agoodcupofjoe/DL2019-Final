@@ -40,7 +40,7 @@ def main():
     for m in models:
         for l in losses:
             try:
-                folder = 'log'+m+'/'+l+'/'
+                folder = 'log/'+m+'/'+l+'/'
                 npzfile = folder+'test_results.npz'
                 imagename = folder+'roc.png'
 
@@ -51,8 +51,8 @@ def main():
                 with open('classification_report.txt','a+') as f:
                     f.write('{} with {} loss\n{}\n\n'.format(m,l,report))
                     
-            except:
-                print("Failed on model '{}' with loss '{}'".format(m,l))
+            except Exception as e:
+                print("Failed on model '{}' with loss '{}' with exception\n{}".format(m,l,e))
     pass
 
 if __name__ == "__main__":
