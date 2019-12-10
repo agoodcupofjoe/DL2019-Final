@@ -1,5 +1,5 @@
 from models import CNN, SENet, ResNet, SE_ResNet, ResNeXt, SE_ResNeXt
-from losses import F1_loss, mean_F1_loss, balanced_focal_loss
+from losses import cross_entropy_loss,F1_loss, mean_F1_loss, balanced_focal_loss
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 
@@ -38,8 +38,8 @@ parser.add_argument('--learn-rate', type=float, default=0.001,
 parser.add_argument('--model', type=str, default='CNN',
                     help='Can be "CNN" or "SENET" or "RESNET" or "RESNEXT" or "SERESNET" or "SERESNEXT"')
 
-parser.add_argument('--loss', type=str, default='F1',
-                    help='Can be "F1" or "mean_F1" or "focal"')
+parser.add_argument('--loss', type=str, default='cross_entropy',
+                    help='Can be "cross_entropy" or "F1" or "mean_F1" or "focal"')
 
 parser.add_argument('--save-output', type=bool, default=True,
                     help="Whether to save model test results to 'test_results.npz'")
@@ -82,6 +82,16 @@ def train(model, train_inputs, train_labels, manager):
 
     new_train_inputs = tf.stack(transformed_jpegs)
 
+    # Determine loss function
+    if args.loss == "cross_entropy":
+        loss_func = cross_entropy_loss
+    elif args.loss == "F1":
+        loss_func = F1_loss
+    elif args.loss == "mean_F1":
+        loss_func = mean_F1_loss
+    elif args.loss == "focal":
+        loss_func = balanced_focal_loss
+    
     with tf.GradientTape() as tape:
         logits = model.call(new_train_inputs, True)
         loss = loss_func(train_labels,logits)
@@ -155,15 +165,8 @@ def main():
     print("MODEL RUNNING: {}".format(args.model))
     log.write("MODEL RUNNING: " + args.model + "\n")
 
-    # Determine loss function
-    if args.loss == "F1":
-        loss_func = F1_loss
-    elif args.loss == "mean_F1":
-        loss_func = mean_F1_loss
-    elif args.loss == "focal":
-        loss_func = balanced_focal_loss
-    print("LOSS FUNCTION: {}".format(args.loss))
-    log.write("LOSS FUNCTION: {}".format(args.loss))
+    print("LOSS FUNCTION: {}\n".format(args.loss))
+    log.write("LOSS FUNCTION: {}\n".format(args.loss))
     
     # For saving/loading models
     checkpoint_dir = './checkpoints/{}'.format(args.model)
@@ -256,7 +259,7 @@ def main():
     print("F1 score: {:.2f}".format(f1))
     log.write("F1 score: " + str(round(f1.numpy(), 2)) + "\n")
     
-    log_directory = "./log/" + args.model + "/"
+    log_directory = "./log/" + args.model + "/" + args.loss + "/"
     try:
         os.makedirs(log_directory)
         print("Created " + log_directory)
