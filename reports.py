@@ -45,14 +45,14 @@ def main():
                 imagename = folder+'roc.png'
 
                 logits,preds,labels = get_results(npzfile)
-                report = report(preds,labels)
+                rep = report(preds,labels)
                 ROC(logits,labels,1,filename=imagename)
 
                 with open('classification_report.txt','a+') as f:
-                    f.write('{} with {} loss\n{}\n\n'.format(m,l,report))
+                    f.write('{} with {} loss\n{}\n\n'.format(m,l,rep))
                     
             except Exception as e:
-                print("Failed on model '{}' with loss '{}' with exception\n{}".format(m,l,e))
+                print("Failed on model '{}' with loss '{}' with exception:\n{}".format(m,l,e))
     pass
 
 if __name__ == "__main__":
