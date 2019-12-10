@@ -1,5 +1,5 @@
-from models import CNN, SENet, ResNet, SE_ResNet, ResNeXt, SE_ResNeXt
-from losses import cross_entropy_loss,F1_loss, mean_F1_loss, balanced_focal_loss
+from models import CNN,SENet,ResNet,SE_ResNet,ResNeXt,SE_ResNeXt
+from losses import cross_entropy_loss,F1_loss,mean_F1_loss,balanced_focal_loss
 from get_labels import get_one_hots_diagnosis
 from cv2 import cv2
 

@@ -49,7 +49,7 @@ def main():
                 ROC(logits,labels,1,filename=imagename)
 
                 with open('classification_report.txt','a+') as f:
-                    print('{} with {} loss\n{}\n\n'.format(m,l,report),file=f)
+                    f.write('{} with {} loss\n{}\n\n'.format(m,l,report))
                     
             except:
                 print("Failed on model '{}' with loss '{}'".format(m,l))
