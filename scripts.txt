@@ -1,1 +1,24 @@
-python main.py --num-epochs 10 --model RESNEXT --batch-size 100
+python main.py --num-epochs 10 --batch-size 100 --model CNN --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model CNN --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model CNN --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model CNN --loss focal
+python main.py --num-epochs 10 --batch-size 100 --model SENET --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model SENET --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model SENET --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model SENET --loss focal
+python main.py --num-epochs 10 --batch-size 100 --model RESNET --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model RESNET --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model RESNET --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model RESNET --loss focal
+python main.py --num-epochs 10 --batch-size 100 --model RESNEXT --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model RESNEXT --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model RESNEXT --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model RESNEXT --loss focal
+python main.py --num-epochs 10 --batch-size 100 --model SERESNET --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model SERESNET --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model SERESNET --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model SERESNET --loss focal
+python main.py --num-epochs 10 --batch-size 100 --model SERESNEXT --loss cross_entropy
+python main.py --num-epochs 10 --batch-size 100 --model SERESNEXT --loss F1
+python main.py --num-epochs 10 --batch-size 100 --model SERESNEXT --loss mean_F1
+python main.py --num-epochs 10 --batch-size 100 --model SERESNEXT --loss focal
