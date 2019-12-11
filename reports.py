@@ -1,3 +1,8 @@
+'''
+# When running noninteractive (e.g. on GCP)
+import matploblib
+matplotlib.use('Agg')
+'''
 import sklearn.metrics as M
 import matplotlib.pyplot as plt
 import numpy as np
