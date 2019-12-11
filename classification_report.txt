@@ -1,0 +1,264 @@
+CNN with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+CNN with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.68      0.77      3875
+           1       0.10      0.31      0.15       458
+
+    accuracy                           0.64      4333
+   macro avg       0.50      0.49      0.46      4333
+weighted avg       0.81      0.64      0.71      4333
+
+
+CNN with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.90      0.72      0.80      3875
+           1       0.11      0.29      0.16       458
+
+    accuracy                           0.68      4333
+   macro avg       0.50      0.51      0.48      4333
+weighted avg       0.81      0.68      0.73      4333
+
+
+CNN with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SENET with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SENET with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.12      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.51      0.50      0.47      4333
+weighted avg       0.81      0.89      0.84      4333
+
+
+SENET with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.70      0.78      3875
+           1       0.10      0.27      0.14       458
+
+    accuracy                           0.65      4333
+   macro avg       0.49      0.49      0.46      4333
+weighted avg       0.81      0.65      0.72      4333
+
+
+SENET with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+RESNET with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+RESNET with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.84      0.87      3875
+           1       0.10      0.14      0.12       458
+
+    accuracy                           0.77      4333
+   macro avg       0.49      0.49      0.49      4333
+weighted avg       0.81      0.77      0.79      4333
+
+
+RESNET with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.90      0.62      0.73      3875
+           1       0.11      0.39      0.17       458
+
+    accuracy                           0.60      4333
+   macro avg       0.50      0.50      0.45      4333
+weighted avg       0.81      0.60      0.67      4333
+
+
+RESNET with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SERESNET with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SERESNET with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.91      0.12      0.22      3875
+           1       0.11      0.89      0.19       458
+
+    accuracy                           0.20      4333
+   macro avg       0.51      0.51      0.20      4333
+weighted avg       0.82      0.20      0.21      4333
+
+
+SERESNET with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.90      0.47      0.62      3875
+           1       0.11      0.55      0.18       458
+
+    accuracy                           0.48      4333
+   macro avg       0.50      0.51      0.40      4333
+weighted avg       0.82      0.48      0.57      4333
+
+
+SERESNET with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+RESNEXT with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+RESNEXT with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.84      0.87      3875
+           1       0.10      0.16      0.12       458
+
+    accuracy                           0.77      4333
+   macro avg       0.50      0.50      0.50      4333
+weighted avg       0.81      0.77      0.79      4333
+
+
+RESNEXT with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.85      0.87      3875
+           1       0.10      0.14      0.12       458
+
+    accuracy                           0.78      4333
+   macro avg       0.50      0.50      0.50      4333
+weighted avg       0.81      0.78      0.79      4333
+
+
+RESNEXT with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SERESNEXT with cross_entropy loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
+SERESNEXT with F1 loss
+              precision    recall  f1-score   support
+
+           0       0.90      0.52      0.66      3875
+           1       0.11      0.49      0.18       458
+
+    accuracy                           0.51      4333
+   macro avg       0.50      0.50      0.42      4333
+weighted avg       0.81      0.51      0.60      4333
+
+
+SERESNEXT with mean_F1 loss
+              precision    recall  f1-score   support
+
+           0       0.89      0.99      0.94      3875
+           1       0.10      0.01      0.02       458
+
+    accuracy                           0.88      4333
+   macro avg       0.50      0.50      0.48      4333
+weighted avg       0.81      0.88      0.84      4333
+
+
+SERESNEXT with focal loss
+              precision    recall  f1-score   support
+
+           0       0.89      1.00      0.94      3875
+           1       0.00      0.00      0.00       458
+
+    accuracy                           0.89      4333
+   macro avg       0.45      0.50      0.47      4333
+weighted avg       0.80      0.89      0.84      4333
+
+
