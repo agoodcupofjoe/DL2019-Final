@@ -6,24 +6,24 @@ import skimage
 from skimage import io, filters
 import multiprocessing
 
+'''
+Corrects image for color constancy based on gray-edge algorithm (p = 6 case known as "Shades of Gray")
+
+References:
+    "Edge-Based Color Constancy" by Joost van de Weijer, Theo Gevers, and Arjan Gijsenji
+    "Improving Dermoscopy Image Classification Using Color Constancy" by Catarina Barata, M. Emre Celebi, and Jorge S. Marques
+    "A Color Balancing Algorithm for Cameras" by Noy Cohen
+
+params:
+    image - input image as a numerical array (numpy or output of io.imread)
+    p - paramter for L^p (Minkowski) norm used for illumination estimation
+    order - the order of the derivative filter used for gradient estimation
+    sigma - the sigma used for Gaussian convolution on the input image
+
+output:
+    Numpy array of pixel values for color-corrected image (values are float in [0,1])
+'''
 def colorconstant(image,p,order=0,sigma=1):
-    '''
-    Corrects image for color constancy based on gray-edge algorithm (p = 6 case known as "Shades of Gray")
-
-    References:
-        "Edge-Based Color Constancy" by Joost van de Weijer, Theo Gevers, and Arjan Gijsenji
-        "Improving Dermoscopy Image Classification Using Color Constancy" by Catarina Barata, M. Emre Celebi, and Jorge S. Marques
-        "A Color Balancing Algorithm for Cameras" by Noy Cohen
-
-    params:
-        image - input image as a numerical array (numpy or output of io.imread)
-        p - paramter for L^p (Minkowski) norm used for illumination estimation
-        order - the order of the derivative filter used for gradient estimation
-        sigma - the sigma used for Gaussian convolution on the input image
-
-    output:
-        Numpy array of pixel values for color-corrected image (values are float in [0,1])
-    '''
     # Gaussian filter convolution (kernel size automatically determined based on sigma)
     filtered = filters.gaussian(image,sigma=sigma,multichannel=True)
     # Choosing nth-order derivative for filter and applying derivative filter
@@ -50,27 +50,25 @@ def colorconstant(image,p,order=0,sigma=1):
     # Returns image as ndarray of uint8
     return np.clip(image / illumination / 255., 0., 0.999999)
 
+'''
+:param: image, a numpy array of shape (width,height,channels) or (height,width,channels)
+returns: image, the original image with the white border replaced by the nexxt nearest pixel color
+'''
 def fixborder(image):
-    '''
-    :param: image, a numpy array of shape (width,height,channels) or (height,width,channels)
-    returns: image, the original image with the white border replaced by the nexxt nearest pixel color
-    '''
     image[0,:,:] = image[1,:,:]
     image[:,0,:] = image[:,1,:]
     image[-1,:,:] = image[-2,:,:]
     image[:,-1,:] = image[:,-2,:]
     return image
 
+# indicator for train vs test
 trainimages = False
 
+'''
+params: filename - string for input image filename
+output: None - replaces image at filename with processed version
+'''
 def processimage(filename):
-    '''
-    params:
-        filename - string for input image filename
-
-    output:
-        None - replaces image at filename with processed version
-    '''
     image = io.imread(filename)
     if trainimages:
         image = colorconstant(image,6)
@@ -81,6 +79,11 @@ def processimage(filename):
     out_file = "processed_data/" + filename.split("/", 1)[1]
     io.imsave(out_file, l, quality = 100)
     print("Processed image at: {}".format(out_file))
+    
+'''
+throws an error if there is an error with processimage function
+params: filename - string for input iamge filename
+'''
 def process_image_with_exception(filename):
     try:
         processimage(filename)
@@ -88,11 +91,19 @@ def process_image_with_exception(filename):
     except Exception as e:
         print("\nFAILED TO PROCESS: {}\nException: {}\n".format(filename, str(e)))
         return False
+
+'''
+separate images to batches to be multiprocesseed
+'''
 def get_batches(imgs, batch_size=1024):
     i = 0
     while i < len(imgs):
         yield imgs[i:i+batch_size]
         i += batch_size
+        
+'''
+main function
+'''
 def main():
     # Reshape each image in train and test folder to 150x200 pixels
     # We know that most images are already in 3:4 aspect ratio
@@ -116,6 +127,7 @@ def main():
                 myfile.write('\n'.join(not_done))
         trainimages = True
     print("Finished processing all images")
+    
 if __name__ == "__main__":
     pool = multiprocessing.Pool(48)
     main()
