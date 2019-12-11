@@ -214,7 +214,7 @@ def main():
                 # Train the model on the current batch's data and labels
                 batch_loss = train(model, batch_data, batch_labels, manager)
                 batch_losses.append(batch_loss)
-                epoch_loss += batch_loss.numpy()
+                epoch_loss += batch_loss.numpy() * len(batch_labels)
                 num_samples += len(batch_labels)
                 if batch_index % 10 == 9:
                     print("TRAIN BATCH {} LOSS: {}".format(batch_index + 1,batch_loss.numpy()))
