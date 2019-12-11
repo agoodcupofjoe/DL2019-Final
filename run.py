@@ -1,13 +1,20 @@
 import subprocess
 import glob
-from operator import itemgetter 
+from operator import itemgetter
+import csv
 
+'''
+opens scripts.txt and reads in each line and runs it
+'''
 with open("scripts.txt", "r") as f:
     scripts = [line[:-1] for line in f.readlines()]
     for s in scripts:
         print("RUNNING THE FOLLOWING SCRIPT: {}".format(s))
         subprocess.call(s.split(), shell = False )
 
+'''
+after done with running all the scripts summarize all the log files into a .csv file
+'''
 logs = glob.glob("log/*/*/log.txt")
 
 all = []

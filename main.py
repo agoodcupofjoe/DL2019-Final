@@ -98,6 +98,7 @@ def train(model, train_inputs, train_labels, manager):
 
     gradients = tape.gradient(loss, model.trainable_variables)
     model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    return loss
 
 # Test
 # Recall function
@@ -182,6 +183,9 @@ def main():
     indices = tf.Variable(np.arange(0, num_train, 1))
     
     if args.mode == "train":
+        loss_history = []
+        epoch_losses = []
+        last_epoch = args.num_epochs
         # Train the baseline model for the following number of epochs
         print("*****************TRAINING*****************")
         for epoch_index in range(args.num_epochs):
@@ -193,7 +197,11 @@ def main():
             # Shuffle the inputs and the labels using the shuffled indices
             train_inputs = tf.gather(train_data, rand_indices)
             train_labels = tf.gather(train_labels, rand_indices)
+
+            epoch_loss = 0
+            num_samples = 0
             for batch_index in range(num_batches):
+                batch_losses = []
                 # Determine the indices of the images for the current batch
                 start_index = batch_index * args.batch_size
                 end_index = (batch_index + 1) * args.batch_size
@@ -204,11 +212,22 @@ def main():
                 batch_data = tf.convert_to_tensor(load_images(batch_images), dtype = tf.float32)
 
                 # Train the model on the current batch's data and labels
-                train(model, batch_data, batch_labels, manager)
+                batch_loss = train(model, batch_data, batch_labels, manager)
+                batch_losses.append(batch_loss)
+                epoch_loss += batch_loss.numpy()
+                num_samples += len(batch_labels)
                 if batch_index % 10 == 9:
-                    print("TRAIN BATCH: {}".format(batch_index + 1))
-
+                    print("TRAIN BATCH {} LOSS: {}".format(batch_index + 1,batch_loss.numpy()))
+            loss_history.append(batch_losses)
+            epoch_avg_loss = epoch_loss / num_samples
+            if len(epoch_losses) >= 2:
+                if epoch_avg_loss > np.amax(epoch_losses[-2:]):
+                    last_epoch = epoch_index + 1
+                    epoch_losses.append(epoch_avg_loss)
+                    break
+            epoch_losses.append(epoch_avg_loss)
             #manager.save()
+        print("Finished training on epoch {}".format(last_epoch))
 
     # Determine accuracy of baseline model on test_data
     num_test = len(test_data)
@@ -277,6 +296,9 @@ def main():
         labels = tf.concat(labels,axis=0).numpy()
         print("\nSAVING RESULTS")
         np.savez(log_directory + "test_results.npz",logits=logits,pred=preds,true=labels)
+        if args.mode == "train"::
+            losses = np.array(loss_history)
+            np.savez(log_directory+"training_losses.npz",losses=losses)
         print("SAVED RESULTS")
 
 if __name__ == '__main__':

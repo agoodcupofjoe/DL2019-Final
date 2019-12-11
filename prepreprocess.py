@@ -8,18 +8,7 @@ import sys
 import shutil
 from random import shuffle
 from PIL import Image
-
-def get_meta(path):
-    '''
-    get_meta gets the relevant clinical metadata from the txt file
-    :param path: path to json file with image metadada
-    :return: list of meta data types (approx_age, anatom_site_general, benign_malignant, diagnosis,
-             diagnosis_confirm_type, melanocytic, sex)
-    '''
-    with open(path) as f:
-        j = json.load(f)['meta']['clinical']
-        # return list(j.values())
-        return j
+from get_labels import get_meta
 
 # get file names for malignant, benign, and others
 to_remove = []
@@ -56,17 +45,11 @@ train_ratio = 0.8
 num_malignant = len(malignant)
 num_benign = len(benign)
 train_malignant = malignant[:(int)(train_ratio * num_malignant)]
-print(len(train_malignant))
 test_malignant = malignant[(int)(train_ratio * num_malignant):]
-print(len(test_malignant))
 train_benign = benign[:(int)(train_ratio * num_benign)]
-print(len(train_benign))
 test_benign = benign[(int)(train_ratio * num_benign):]
-print(len(test_benign))
 
-exit()
-
-# designate train_data and test_data
+# designate train_data
 train_files = train_malignant + train_benign
 print(len(train_files))
 try:
@@ -74,6 +57,7 @@ try:
     os.makedirs("Data/train/img")
 except:
     print("Train directories already exist")
+    
 for file in train_files:
     try:
         shutil.move(descriptions_location + file, "Data/train/meta/" + file)
@@ -82,12 +66,14 @@ for file in train_files:
         print("Error moving train files")
 print("MOVED TRAIN DATA SUCCESSFULLY")
 
+# designate test_data
 test_files = test_malignant + test_benign
 try:
     os.makedirs("Data/test/meta")
     os.makedirs("Data/test/img")
 except:
     print("Test directories already exist")
+    
 for file in test_files:
     try:
         shutil.move(descriptions_location + file, "Data/test/meta/" + file)
