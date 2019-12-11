@@ -221,7 +221,7 @@ def main():
             loss_history.append(batch_losses)
             epoch_avg_loss = epoch_loss / num_samples
             if len(epoch_losses) >= 2:
-                if epoch_avg_loss > np.maximum(epoch_losses[-2:]):
+                if epoch_avg_loss > np.amax(epoch_losses[-2:]):
                     last_epoch = epoch_index + 1
                     epoch_losses.append(epoch_avg_loss)
                     break
