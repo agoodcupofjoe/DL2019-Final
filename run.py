@@ -1,6 +1,7 @@
 import subprocess
 import glob
-from operator import itemgetter 
+from operator import itemgetter
+import csv
 
 '''
 opens scripts.txt and reads in each line and runs it
