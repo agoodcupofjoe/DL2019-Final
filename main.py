@@ -217,7 +217,7 @@ def main():
                 epoch_loss += batch_loss.numpy()
                 num_samples += len(batch_labels)
                 if batch_index % 10 == 9:
-                    print("TRAIN BATCH: {}".format(batch_index + 1))
+                    print("TRAIN BATCH {} LOSS: {}".format(batch_index + 1,batch_loss.numpy()))
             loss_history.append(batch_losses)
             epoch_avg_loss = epoch_loss / num_samples
             if len(epoch_losses) >= 2:
