@@ -221,7 +221,7 @@ def main():
             loss_history.append(batch_losses)
             epoch_avg_loss = epoch_loss / num_samples
             with open('log/{}/{}/losses.txt'.format(args.model,args.loss),'a+') as lossfile:
-                lossfile.write('EPOCH {} LOSS: {}'.format(epoch_index+1,epoch_avg_loss))
+                lossfile.write('EPOCH {} LOSS: {}\n'.format(epoch_index+1,epoch_avg_loss))
             if len(epoch_losses) >= 5:
                 if epoch_avg_loss > np.amax(epoch_losses[-5:]):
                     last_epoch = epoch_index + 1
