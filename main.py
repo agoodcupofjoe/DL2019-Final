@@ -214,14 +214,16 @@ def main():
                 # Train the model on the current batch's data and labels
                 batch_loss = train(model, batch_data, batch_labels, manager)
                 batch_losses.append(batch_loss)
-                epoch_loss += batch_loss.numpy()
+                epoch_loss += batch_loss.numpy() * len(batch_labels)
                 num_samples += len(batch_labels)
                 if batch_index % 10 == 9:
                     print("TRAIN BATCH {} LOSS: {}".format(batch_index + 1,batch_loss.numpy()))
             loss_history.append(batch_losses)
             epoch_avg_loss = epoch_loss / num_samples
-            if len(epoch_losses) >= 2:
-                if epoch_avg_loss > np.amax(epoch_losses[-2:]):
+            with open('log/{}/{}/losses.txt'.format(args.model,args.loss),'a+') as lossfile:
+                lossfile.write('EPOCH {} LOSS: {}\n'.format(epoch_index+1,epoch_avg_loss))
+            if len(epoch_losses) >= 5:
+                if epoch_avg_loss > np.amax(epoch_losses[-5:]):
                     last_epoch = epoch_index + 1
                     epoch_losses.append(epoch_avg_loss)
                     break
@@ -296,7 +298,7 @@ def main():
         labels = tf.concat(labels,axis=0).numpy()
         print("\nSAVING RESULTS")
         np.savez(log_directory + "test_results.npz",logits=logits,pred=preds,true=labels)
-        if args.mode == "train"::
+        if args.mode == "train":
             losses = np.array(loss_history)
             np.savez(log_directory+"training_losses.npz",losses=losses)
         print("SAVED RESULTS")
